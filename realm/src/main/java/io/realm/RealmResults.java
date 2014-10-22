@@ -28,8 +28,17 @@ import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
 
 /**
+ * A RealmResults list contains a list of objects of a given type that matches the query.
+ * The objects are not copied from the Realm to the RealmResults list, but just references the original objects.
+ * This preserves memory and increase speed.
+ * It also implies that any modification to any object in a RealmResults is reflected in the objects in the 
+ * Realm that was queried.
+ * Updates to objects must be done within a transaction and the modified object is persisted to the backing
+ * Realm file during the commit of the transaction.
  *
  * @param <E> The class of objects in this list
+ * @see RealmQuery#findAll()
+ * @see Realm#allObjects(Class)
  */
 public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
@@ -54,9 +63,6 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         return realm;
     }
 
-    /**
-     * @hide
-     */
     TableOrView getTable() {
         if (table == null) {
             return realm.getTable(classSpec);
@@ -115,7 +121,8 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     /**
      * Get a sorted (ascending) RealmList from an existing RealmList.
-     *
+     * Only fields of type boolean, short, int, long, float, double, Date, and String are supported.
+     * 
      * @param fieldName  The field name to sort by.
      * @return           A sorted RealmResults list
      */
@@ -125,19 +132,20 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     /**
      * Get a sorted RealmList from an existing RealmList.
+     * Only fields of type boolean, short, int, long, float, double, Date, and String are supported.
      *
-     * @param fieldName  The field name to sort by.
-     * @param sortOrder  The direction to sort by; if true ascending, if false descending
-     *                   You can use the constants SORT_ORDER_ASCENDING and SORT_ORDER_DECENDING
-     *                   to write more readable code.
-     * @return           A sorted RealmResults list.
+     * @param fieldName      The field name to sort by.
+     * @param sortAscending  The direction to sort by; if true ascending, otherwise descending
+     *                       You can use the constants SORT_ORDER_ASCENDING and SORT_ORDER_DECENDING
+     *                       for readability.
+     * @return               A sorted RealmResults list.
      */
-    public RealmResults<E> sort(String fieldName, boolean sortOrder) {
+    public RealmResults<E> sort(String fieldName, boolean sortAscending) {
         TableView sorted;
 
         TableOrView table = getTable();
         long columnIndex = table.getColumnIndex(fieldName);
-        TableView.Order TVOrder = sortOrder? TableView.Order.ascending : TableView.Order.descending;
+        TableView.Order TVOrder = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
 
         if (table instanceof TableView) {
             TableView v = (TableView)table;
@@ -169,7 +177,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @param fieldName   The field to look for a minimum on. Only int, float, and double
      *                    are supported.
      * @return            The minimum value.
-     * @throws            java.lang.RuntimeException if field is not int, float or double.
+     * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
      */
     public Number min(String fieldName) {
         long columnIndex = table.getColumnIndex(fieldName);
@@ -181,7 +189,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             case DOUBLE:
                 return table.minimumDouble(columnIndex);
             default:
-                throw new RuntimeException("Wrong type of field. Expected int, float or double type.");
+                throw new IllegalArgumentException("Wrong type of field. Expected int, float or double type.");
         }
     }
 
@@ -191,7 +199,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @param fieldName  The field to look for the minimum date. If fieldName is not of Date type,
      *                   an exception is thrown.
      * @return           The minimum date.
-     * @throws           java.lang.RuntimeException if fieldName is not a Date field.
+     * @throws           java.lang.IllegalArgumentException if fieldName is not a Date field.
      */
     public Date minDate(String fieldName) {
         long columnIndex = table.getColumnIndex(fieldName);
@@ -199,7 +207,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             return table.minimumDate(columnIndex);
         }
         else {
-            throw new RuntimeException("Wrong type of field - Date type expected.");
+            throw new IllegalArgumentException("Wrong type of field - Date type expected.");
         }
     }
 
@@ -208,7 +216,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      * @param fieldName   The field to look for a maximum on. Only int, float, and double are supported.
      * @return            The maximum value.
-     * @throws            java.lang.RuntimeException if field is not int, float or double.
+     * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
      */
     public Number max(String fieldName) {
         long columnIndex = table.getColumnIndex(fieldName);
@@ -220,7 +228,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             case DOUBLE:
                 return table.maximumDouble(columnIndex);
             default:
-                throw new RuntimeException("Wrong type of field. Expected int, float or double type.");
+                throw new IllegalArgumentException("Wrong type of field. Expected int, float or double type.");
         }
     }
 
@@ -230,7 +238,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @param fieldName  The field to look for the maximum date. If fieldName is not of Date type,
      *                   an exception is thrown.
      * @return           The maximum date.
-     * @throws           java.lang.RuntimeException if fieldName is not a Date field.
+     * @throws           java.lang.IllegalArgumentException if fieldName is not a Date field.
      */
     public Date maxDate(String fieldName) {
         long columnIndex = table.getColumnIndex(fieldName);
@@ -238,7 +246,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             return table.minimumDate(columnIndex);
         }
         else {
-            throw new RuntimeException("Wrong type of field - Date expected");
+            throw new IllegalArgumentException("Wrong type of field - Date expected");
         }
     }
 
@@ -248,7 +256,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      * @param fieldName   The field to sum. Only int, float, and double are supported.
      * @return            The sum.
-     * @throws            java.lang.RuntimeException if field is not int, float or double.
+     * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
      */
 
     public Number sum(String fieldName) {
@@ -261,7 +269,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             case DOUBLE:
                 return table.sumDouble(columnIndex);
             default:
-                throw new RuntimeException("Wrong type of field. Expected int, float or double type.");
+                throw new IllegalArgumentException("Wrong type of field. Expected int, float or double type.");
         }
     }
 
@@ -273,7 +281,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *                   float and double are supported.
      * @return           The average for the given field amongst objects in an RealmList. This
      *                   will be of type double for both float and double field.
-     * @throws           java.lang.RuntimeException if field is not int, float or double.
+     * @throws           java.lang.IllegalArgumentException if field is not int, float or double.
      */
     public double average(String fieldName) {
         long columnIndex = table.getColumnIndex(fieldName);
@@ -285,7 +293,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             case FLOAT:
                 return table.averageFloat(columnIndex);
             default:
-                throw new RuntimeException("Wrong type of field. Expected int, float or double type.");
+                throw new IllegalArgumentException("Wrong type of field. Expected int, float or double type.");
         }
     }
 
