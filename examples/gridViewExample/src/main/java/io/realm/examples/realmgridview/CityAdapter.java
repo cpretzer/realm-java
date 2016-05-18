@@ -24,6 +24,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import java.util.List;
+import java.util.Locale;
 
 // This adapter is strictly to interface with the GridView and doesn't
 // particular show much interesting Realm functionality.
@@ -32,8 +33,6 @@ import java.util.List;
 // a developer could update the getView() to pull items from the Realm.
 
 public class CityAdapter extends BaseAdapter {
-
-    public static final String TAG = RealmExampleActivity.class.getName();
 
     private LayoutInflater inflater;
 
@@ -78,7 +77,7 @@ public class CityAdapter extends BaseAdapter {
 
         if (city != null) {
             ((TextView) currentView.findViewById(R.id.name)).setText(city.getName());
-            ((TextView) currentView.findViewById(R.id.votes)).setText(Long.toString(city.getVotes()));
+            ((TextView) currentView.findViewById(R.id.votes)).setText(String.format(Locale.US, "%d",city.getVotes()));
         }
 
         return currentView;

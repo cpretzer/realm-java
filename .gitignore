@@ -22,7 +22,7 @@ core-*
 */.DS_Store
 
 # JNI libs
-/realm/src/main/jniLibs
+realm_version_check.timestamp
 
 # Build artifacts
 *.so
@@ -31,6 +31,7 @@ core-*
 
 # Backup files
 *.bak
+*~
 
 # Navigation Editor
 .navigation
@@ -44,3 +45,4 @@ distribution/version.txt
 distribution/RealmGridViewExample/app/src
 distribution/RealmIntroExample/app/src
 distribution/RealmMigrationExample/app/src
+
